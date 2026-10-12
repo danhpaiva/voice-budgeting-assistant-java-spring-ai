@@ -5,9 +5,9 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.openai.OpenAiChatModel;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Controller para processamento de voz com IA.
@@ -30,7 +31,7 @@ import java.util.Map;
  * 
  * ETAPA 8 - IMPLEMENTAÇÃO SIMPLIFICADA:
  * Por enquanto, focamos em:
- * - /ai/chat → Chat endpoint com OpenAiChatModel
+ * - /ai/chat → Chat endpoint com ChatModel
  * - Placeholder para /ai/voice, /ai/transcribe, /ai/speak
  * 
  * @author Voice Budgeting Team
@@ -42,10 +43,12 @@ import java.util.Map;
 public class AiVoiceController {
     
     /**
-     * OpenAiChatModel (autoconfigured pelo Spring Boot).
+     * ChatModel (optional - injetado apenas se disponível).
      * Responsável por comunicar com OpenAI.
+     * 
+     * Utiliza Optional para evitar falha de inicialização se a API key não estiver configurada.
      */
-    private final OpenAiChatModel chatModel;
+    private final Optional<ChatModel> chatModel;
     
     /**
      * Modelo de voz TTS a usar.
@@ -69,12 +72,12 @@ public class AiVoiceController {
     private String openAiApiKey;
     
     /**
-     * Constructor Injection.
+     * Constructor Injection com Optional para ChatModel.
      * 
-     * @param chatModel Injetado pelo Spring (autoconfigured do starter)
+     * @param chatModel ChatModel optional (pode não estar disponível se API key não estiver configurada)
      */
-    public AiVoiceController(OpenAiChatModel chatModel) {
-        this.chatModel = chatModel;
+    public AiVoiceController(@Autowired(required = false) ChatModel chatModel) {
+        this.chatModel = Optional.ofNullable(chatModel);
     }
     
     /**
@@ -145,7 +148,7 @@ public class AiVoiceController {
     /**
      * ENDPOINT 3: Envia texto ao ChatModel.
      * 
-     * ✅ ENDPOINT FUNCIONAL - Usa OpenAiChatModel
+     * ✅ ENDPOINT FUNCIONAL - Usa ChatModel se disponível
      * 
      * EXEMPLO DE USO:
      * curl -X POST \
@@ -162,7 +165,8 @@ public class AiVoiceController {
     @Operation(summary = "Chat with AI", description = "Send text message and get AI response")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "AI response"),
-        @ApiResponse(responseCode = "400", description = "Invalid request")
+        @ApiResponse(responseCode = "400", description = "Invalid request"),
+        @ApiResponse(responseCode = "503", description = "ChatModel not configured (missing OPENAI_API_KEY)")
     })
     public ResponseEntity<Map<String, Object>> chat(
             @RequestBody ChatRequest request) {
@@ -171,8 +175,17 @@ public class AiVoiceController {
             throw new IllegalArgumentException("Text field is required and cannot be empty");
         }
         
-        // Chamar OpenAiChatModel diretamente
-        ChatResponse response = chatModel.call(new Prompt(request.getText()));
+        // Se ChatModel não estiver disponível, retornar erro informativo
+        if (chatModel.isEmpty()) {
+            Map<String, Object> result = new LinkedHashMap<>();
+            result.put("error", "ChatModel not configured");
+            result.put("message", "Please set OPENAI_API_KEY environment variable to use AI chat");
+            result.put("status", "unavailable");
+            return ResponseEntity.status(503).body(result);
+        }
+        
+        // Chamar ChatModel
+        var response = chatModel.get().call(new Prompt(request.getText()));
         String aiResponse = response.getResult().getOutput().getText();
         
         // Retornar JSON
