@@ -1,637 +1,529 @@
-# 🎤 Voice Budgeting Assistant - Spring AI
+# 🎙️ Voice Budgeting Assistant
 
-![Java](https://img.shields.io/badge/Java-25-ED8B00?style=flat-square&logo=openjdk)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.1-6DB33F?style=flat-square&logo=spring-boot)
-![Spring Data JPA](https://img.shields.io/badge/Spring%20Data%20JPA-Latest-6DB33F?style=flat-square&logo=spring)
-![H2 Database](https://img.shields.io/badge/H2-In--Memory%20SQL-004B87?style=flat-square&logo=h2&logoColor=white)
-![Maven](https://img.shields.io/badge/Build-Maven-C71A36?style=flat-square&logo=apache-maven)
-![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
-![Status](https://img.shields.io/badge/Status-In%20Development-yellow?style=flat-square)
-
-**Uma API inteligente de orçamento que processa comandos de voz para criar e consultar transações financeiras usando IA.**
+Um assistente de orçamento inteligente baseado em **Spring Boot** e **Spring AI** que permite gerenciar suas finanças através de:
+- ✅ REST API para CRUD de transações
+- ✅ Chat com IA para processamento de comandos de voz
+- ✅ Transcrição de áudio (Whisper)
+- ✅ Síntese de fala (TTS)
+- ✅ Tool Calling para executar operações automáticas
 
 ---
 
-## 📋 Índice
-
-- [Visão Geral](#visão-geral)
-- [Tecnologias](#-tecnologias)
-- [Arquitetura](#-arquitetura)
-- [Requisitos](#-requisitos)
-- [Instalação](#-instalação)
-- [Configuração](#-configuração)
-- [Como Executar](#-como-executar)
-- [Endpoints da API](#-endpoints-da-api)
-- [Fluxo Principal](#-fluxo-principal)
-- [Exemplos de Uso](#-exemplos-de-uso)
-- [Desenvolvimento](#-desenvolvimento)
-- [Roadmap](#-roadmap)
-- [Contribuindo](#-contribuindo)
-
----
-
-## 🎯 Visão Geral
-
-O **Voice Budgeting Assistant** é uma aplicação educacional final do programa **DIO Spring Boot Track** que demonstra como integrar:
-
-- ✅ **Spring Boot 4.1** — Framework web e aplicação
-- ✅ **Spring Data JPA** — Persistência de dados
-- ✅ **H2 Database** — Banco de dados em memória para desenvolvimento
-- ✅ **Spring AI (futuro)** — Processamento de áudio e IA para tool calling
-- ✅ **OpenAPI/Swagger** — Documentação automática da API
-
-### Objetivo
-
-Criar uma API REST inteligente que:
-
-1. Recebe comandos de voz em português/inglês
-2. Transcreve áudio em texto usando Whisper (OpenAI)
-3. Utiliza IA para interpretar a intenção do usuário
-4. Executa funções reais de negócio (criar/consultar transações)
-5. Retorna resposta em voz (Text-to-Speech)
-
----
-
-## 🛠️ Tecnologias
-
-| Tecnologia | Versão | Uso |
-|---|---|---|
-| **Java** | 25 | Linguagem principal |
-| **Spring Boot** | 4.1.1 | Framework web e orquestração |
-| **Spring Data JPA** | Latest | ORM e persistência |
-| **Hibernate** | Latest | Mapeamento relacional de objetos |
-| **H2 Database** | Latest | Base de dados em memória (dev) |
-| **SpringDoc OpenAPI** | 2.1.0 | Documentação Swagger automática |
-| **Spring AI** | (a adicionar) | Chat models e transcription |
-| **Maven** | 3.6+ | Build e gerenciamento de dependências |
-
----
-
-## 🏗️ Arquitetura
-
-Projeto organizado em **camadas DDD (Domain-Driven Design)**:
-
-```
-src/main/java/one/digitalinnovation/budgeting
-├── domain/                          # Camada de Domínio
-│   ├── Transaction.java            # Entidade de transação
-│   ├── TransactionType.java        # Enum (INCOME, EXPENSE)
-│   └── TransactionRepository.java  # Contrato de repositório
-│
-├── application/                     # Camada de Aplicação (Use Cases)
-│   ├── CreateTransactionUseCase.java
-│   └── GetTransactionsUseCase.java
-│
-├── infrastructure/                  # Camada de Infraestrutura
-│   ├── persistence/
-│   │   └── TransactionJpaRepository.java
-│   ├── ai/
-│   │   ├── AiConfig.java           # Configuração do ChatClient
-│   │   └── BudgetingTools.java     # @Tool methods para IA
-│   └── web/
-│       ├── TransactionController.java
-│       ├── AiVoiceController.java
-│       └── GlobalExceptionHandler.java
-│
-└── BudgetingApplication.java       # Entry point
-```
-
-### Fluxo de Requisição
-
-```
-Cliente
-  ↓
-[POST /ai/voice] ← AiVoiceController
-  ↓
-TranscriptionModel (Whisper) → Texto
-  ↓
-ChatClient + Tools (BudgetingTools)
-  ↓
-[CreateTransaction | GetTransactions] ← Use Cases
-  ↓
-TransactionRepository → Persistência (H2)
-  ↓
-TextToSpeechModel → MP3
-  ↓
-Response: audio/mpeg
-```
-
----
-
-## 📦 Requisitos
+## 🚀 Quick Start
 
 ### Pré-requisitos
 
-- **Java 25** ou superior
-  ```bash
-  java -version
-  ```
-  
-- **Maven 3.8.1** ou superior
-  ```bash
-  mvn -version
-  ```
+- **Java 25+** (testado com Java 25.0.4.1)
+- **Maven 3.9+**
+- **OpenAI API Key** (obtido em https://platform.openai.com/api-keys)
 
-- **Git** (para clonar o repositório)
-  ```bash
-  git clone https://github.com/seu-usuario/voice-budgeting-assistant.git
-  ```
-
-### Dependências de Ambiente (opcional)
-
-- **OpenAI API Key** (necessário para usar IA depois)
-  ```bash
-  export OPENAI_API_KEY="sk-..."
-  ```
-
----
-
-## 💻 Instalação
-
-### 1. Clone o Repositório
+### 1. Clonar e Configurar
 
 ```bash
-git clone https://github.com/seu-usuario/voice-budgeting-assistant.git
-cd voice-budgeting-assistant/budgeting
+# Clonar repositório
+git clone <seu-repo>
+cd budgeting
+
+# Definir variável de ambiente com sua chave OpenAI
+export OPENAI_API_KEY="sk-your-api-key-here"
 ```
 
-### 2. Verifique Java e Maven
-
-```bash
-java -version      # Deve ser Java 25+
-mvn -version       # Deve ser Maven 3.8.1+
-```
-
-### 3. Compile o Projeto
+### 2. Compilar Projeto
 
 ```bash
 ./mvnw clean compile
 ```
 
-**Esperado:** `BUILD SUCCESS`
-
----
-
-## ⚙️ Configuração
-
-### `application.properties`
-
-O arquivo `src/main/resources/application.properties` contém as configurações principais:
-
-```properties
-# Servidor
-server.port=8080
-
-# H2 Database (em memória)
-spring.datasource.url=jdbc:h2:mem:budgeting
-spring.h2.console.enabled=true
-spring.h2.console.path=/h2-console
-
-# JPA/Hibernate
-spring.jpa.hibernate.ddl-auto=create-drop
-spring.jpa.show-sql=false
-
-# Logging
-logging.level.root=INFO
-logging.level.one.digitalinnovation.budgeting=DEBUG
-```
-
-### Variáveis de Ambiente (futuro com Spring AI)
-
-Quando Spring AI for adicionado, configure:
+### 3. Executar Servidor
 
 ```bash
-export OPENAI_API_KEY="your-api-key-here"
-```
-
-**Como obter a chave:**
-1. Acesse [platform.openai.com](https://platform.openai.com)
-2. Crie uma conta ou faça login
-3. Acesse Settings → API Keys
-4. Gere uma nova chave secreta
-5. Copie e armazene de forma segura
-
----
-
-## 🚀 Como Executar
-
-### Opção 1: Maven Wrapper (Recomendado)
-
-```bash
-cd budgeting
-
-# Iniciar a aplicação
 ./mvnw spring-boot:run
-
-# Ou compilar e rodar diretamente
-./mvnw clean package
-java -jar target/budgeting-0.0.1-SNAPSHOT.jar
 ```
 
-### Opção 2: IDE (VS Code, IntelliJ IDEA)
+Servidor inicia em: **http://localhost:8080**
 
-1. Abra a pasta `budgeting` na sua IDE
-2. Clique em "Run" ou pressione `F5`
-3. A aplicação iniciará em `http://localhost:8080`
+### 4. Acessar Swagger UI
 
-### Verificação de Inicialização
-
-Quando a aplicação iniciar, você verá algo como:
-
+Documentação interativa:
 ```
-2026-10-12 15:10:00.123  INFO 12345 --- [main] o.d.b.BudgetingApplication : 
-Started BudgetingApplication in 3.456 seconds (process running for 4.789s)
+http://localhost:8080/swagger-ui.html
 ```
 
 ---
 
-## 📡 Endpoints da API
+## 📊 Arquitetura
 
-### 🏥 Health Check
+O projeto segue **Domain-Driven Design (DDD)** com 3 camadas principais:
 
+### 1. **Domain Layer** (Camada de Domínio)
+Entidades e interfaces de negócio:
+- `Transaction` (Record com JPA @Entity)
+- `TransactionType` (Enum: INCOME, EXPENSE)
+- `TransactionRepository` (Interface pura, sem dependências Spring)
+
+**Arquivo:** `domain/`
+
+### 2. **Application Layer** (Camada de Aplicação)
+Casos de uso e lógica de negócio:
+- `CreateTransactionUseCase` - Criar transação com validações
+- `GetTransactionsUseCase` - Consultar transações com 6 métodos de filtro
+
+**Arquivo:** `application/`
+
+### 3. **Infrastructure Layer** (Camada de Infraestrutura)
+
+#### a) **Persistence**
+- `SpringDataTransactionRepository` - Adapter JPA (implements domain interface)
+- `TransactionJpaRepository` - Spring Data JPA interface
+
+**Arquivo:** `infrastructure/persistence/`
+
+#### b) **Web**
+- `TransactionController` - REST endpoints (POST, GET)
+- `AiVoiceController` - Endpoints de voz e chat
+- `GlobalExceptionHandler` - Tratamento centralizado de erros
+- DTOs com validações
+
+**Arquivo:** `infrastructure/web/`
+
+#### c) **AI**
+- `BudgetingTools` - Expõe use cases como ferramentas para IA
+- `AiConfig` - Configuração do ChatClient OpenAI
+
+**Arquivo:** `infrastructure/ai/`
+
+#### d) **Exception Handling**
+- `ResourceNotFoundException` - Recurso não encontrado (404)
+- `BusinessException` - Erro de negócio (400)
+
+**Arquivo:** `infrastructure/exception/`
+
+---
+
+## 📡 REST API Endpoints
+
+### Transações
+
+#### 1. Criar Transação
 ```http
-GET /swagger-ui.html
-```
+POST /transactions
+Content-Type: application/json
 
-Acessa a documentação interativa da API (Swagger UI).
-
-### 💰 Transações
-
-| Método | Endpoint | Descrição |
-|---|---|---|
-| **GET** | `/transactions` | Lista todas as transações |
-| **GET** | `/transactions/{id}` | Busca uma transação por ID |
-| **POST** | `/transactions` | Cria uma nova transação |
-
-#### Criar Transação
-
-**Request:**
-```bash
-curl -X POST http://localhost:8080/transactions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "description": "Almoço no restaurante",
-    "amount": 50.00,
-    "type": "EXPENSE"
-  }'
-```
-
-**Response (201 Created):**
-```json
 {
-  "id": "123e4567-e89b-12d3-a456-426614174000",
-  "description": "Almoço no restaurante",
+  "description": "Almoço",
   "amount": 50.00,
-  "type": "EXPENSE",
-  "createdAt": "2026-10-12T15:10:30"
+  "type": "EXPENSE"
 }
 ```
 
-#### Listar Transações
-
-**Request:**
-```bash
-curl http://localhost:8080/transactions
+**Resposta (201 Created):**
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "description": "Almoço",
+  "amount": 50.00,
+  "type": "EXPENSE",
+  "createdAt": "2026-10-12T16:00:00"
+}
 ```
 
-**Response (200 OK):**
+#### 2. Listar Transações
+```http
+GET /transactions
+```
+
+**Resposta (200 OK):**
 ```json
 [
   {
-    "id": "123e4567-e89b-12d3-a456-426614174000",
-    "description": "Almoço no restaurante",
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "description": "Almoço",
     "amount": 50.00,
-    "type": "EXPENSE",
-    "createdAt": "2026-10-12T15:10:30"
-  },
-  {
-    "id": "223e4567-e89b-12d3-a456-426614174001",
-    "description": "Salário",
-    "amount": 5000.00,
-    "type": "INCOME",
-    "createdAt": "2026-10-12T15:15:00"
+    "type": "EXPENSE"
   }
 ]
 ```
 
-#### Buscar Transação por ID
-
-**Request:**
-```bash
-curl http://localhost:8080/transactions/123e4567-e89b-12d3-a456-426614174000
+#### 3. Obter Transação
+```http
+GET /transactions/{id}
 ```
 
-**Response (200 OK):**
-```json
+**Resposta (200 OK):** Objeto Transaction
+
+---
+
+### Chat com IA
+
+#### 1. Chat (Texto)
+```http
+POST /ai/chat
+Content-Type: application/json
+
 {
-  "id": "123e4567-e89b-12d3-a456-426614174000",
-  "description": "Almoço no restaurante",
-  "amount": 50.00,
-  "type": "EXPENSE",
-  "createdAt": "2026-10-12T15:10:30"
+  "text": "Qual é meu saldo?"
 }
 ```
 
-### 🤖 AI / Voice (Futuro)
+**Resposta (200 OK):**
+```json
+{
+  "response": "Seu saldo atual é R$0.00",
+  "status": "success"
+}
+```
 
-| Método | Endpoint | Descrição |
-|---|---|---|
-| **POST** | `/ai/voice` | Processa áudio e retorna resposta em voz |
+#### 2. Voice (Áudio) — Placeholder
+```http
+POST /ai/voice
+Content-Type: multipart/form-data
+
+audio=@seu-audio.mp3
+```
+
+**Resposta:** MP3 binário com resposta em áudio
+
+#### 3. Transcrição (Áudio → Texto) — Placeholder
+```http
+POST /ai/transcribe
+Content-Type: multipart/form-data
+
+audio=@seu-audio.mp3
+```
+
+**Resposta (200 OK):**
+```json
+{
+  "transcript": "Qual é meu saldo?",
+  "status": "success"
+}
+```
+
+#### 4. Síntese de Voz (Texto → Áudio) — Placeholder
+```http
+POST /ai/speak
+Content-Type: application/json
+
+{
+  "text": "Seu saldo é zero"
+}
+```
+
+**Resposta:** MP3 binário com síntese de voz
 
 ---
 
-## 🎯 Fluxo Principal
+## 🔧 Configuração
 
-### Fluxo Completo: Áudio → Texto → IA → Transação → Áudio
+### application.properties
 
-```sequence
-Cliente
-  ↓ [POST /ai/voice + audio.mp3]
-AiVoiceController
-  ↓ [TranscriptionModel]
-"Add expense 50 for lunch"
-  ↓ [ChatClient.call()]
-BudgetingTools
-  ↓ [createTransaction()]
-CreateTransactionUseCase
-  ↓ [save()]
-TransactionRepository
-  ↓ [persist]
-H2 Database
-  ↓ [response text]
-TextToSpeechModel
-  ↓ [generate MP3]
-Cliente [audio/mpeg]
+```properties
+# Aplicação
+spring.application.name=budgeting
+server.port=8080
+
+# Database (H2 em memória)
+spring.datasource.url=jdbc:h2:mem:budgeting
+spring.datasource.driverClassName=org.h2.Driver
+spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
+spring.jpa.hibernate.ddl-auto=create-drop
+
+# OpenAI Configuration
+spring.ai.openai.api-key=${OPENAI_API_KEY:demo}
+spring.ai.openai.chat.model=gpt-3.5-turbo
+spring.ai.openai.audio.transcription.model=whisper-1
+spring.ai.openai.audio.speech.model=tts-1
+spring.ai.openai.audio.speech.voice=alloy
+
+# Logging
+logging.level.root=INFO
+logging.level.one.digitalinnovation.budgeting=DEBUG
+logging.level.org.springframework.ai=DEBUG
 ```
 
 ---
 
-## 📚 Exemplos de Uso
+## 🧪 Exemplos de Uso
 
-### Exemplo 1: Criar Transação via REST
+### Exemplo 1: Criar Transação e Consultar
 
 ```bash
-# Registrar uma despesa de $75 com café
+# 1. Criar uma despesa
 curl -X POST http://localhost:8080/transactions \
   -H "Content-Type: application/json" \
   -d '{
     "description": "Café da manhã",
-    "amount": 75.00,
+    "amount": 25.50,
     "type": "EXPENSE"
+  }'
+
+# 2. Listar todas as transações
+curl http://localhost:8080/transactions
+
+# 3. Chat com IA
+curl -X POST http://localhost:8080/ai/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Quanto gastei?"
   }'
 ```
 
-### Exemplo 2: Listar Todas as Transações
+### Exemplo 2: Fluxo Completo de Voz (Future)
 
 ```bash
-curl http://localhost:8080/transactions | jq
+# 1. Enviar áudio em português
+curl -X POST http://localhost:8080/ai/voice \
+  -H "Content-Type: multipart/form-data" \
+  -F "audio=@comando-voz.mp3"
+
+# Fluxo interno:
+# 1. Whisper transcreve: "Qual é meu saldo?"
+# 2. ChatClient processa com tool calling
+# 3. IA chama automaticamente: budgetingTools.calculateBalance()
+# 4. TTS gera resposta: "Seu saldo atual é R$100,00"
+# 5. Retorna: audio-resposta.mp3
 ```
-
-### Exemplo 3: Acessar H2 Console (para debug)
-
-1. Acesse: `http://localhost:8080/h2-console`
-2. Use as credenciais padrão:
-   - **JDBC URL:** `jdbc:h2:mem:budgeting`
-   - **User Name:** `sa`
-   - **Password:** (deixe vazio)
-3. Execute SQL:
-   ```sql
-   SELECT * FROM transaction;
-   ```
-
-### Exemplo 4: Acessar Swagger UI
-
-1. Acesse: `http://localhost:8080/swagger-ui.html`
-2. Veja todos os endpoints documentados
-3. Teste endpoints diretamente pela UI
 
 ---
 
-## 🔨 Desenvolvimento
+## 🛠️ Tratamento de Erros
 
-### Estrutura de Pastas
+Todos os erros retornam formato padronizado:
+
+```json
+{
+  "timestamp": "2026-10-12T16:10:30.123",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Descrição do erro",
+  "path": "/ai/chat"
+}
+```
+
+### Status Codes
+
+| Status | Descrição |
+|--------|-----------|
+| 200 | Sucesso |
+| 201 | Criado com sucesso |
+| 400 | Erro de validação ou negócio |
+| 404 | Recurso não encontrado |
+| 500 | Erro interno do servidor |
+
+### Exemplos
+
+**Erro 400 - Texto vazio:**
+```bash
+curl -X POST http://localhost:8080/ai/chat \
+  -H "Content-Type: application/json" \
+  -d '{"text": ""}'
+```
+
+Resposta:
+```json
+{
+  "timestamp": "2026-10-12T16:10:30.123",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Text field is required and cannot be empty",
+  "path": "/ai/chat"
+}
+```
+
+---
+
+## 🏗️ Estrutura de Pastas
 
 ```
 budgeting/
-├── .mvn/                           # Maven wrapper
-├── src/
-│   ├── main/
-│   │   ├── java/one/digitalinnovation/budgeting/
-│   │   │   ├── domain/
-│   │   │   ├── application/
-│   │   │   ├── infrastructure/
-│   │   │   └── BudgetingApplication.java
-│   │   └── resources/
-│   │       ├── application.properties
-│   │       ├── static/             # CSS, JS, imagens
-│   │       └── templates/          # HTML (Thymeleaf)
-│   └── test/
-│       └── java/one/digitalinnovation/budgeting/
-│           └── BudgetingApplicationTests.java
-├── pom.xml                         # Dependências Maven
-└── README.md                       # Este arquivo
-```
-
-### Compilar com Debug
-
-```bash
-./mvnw clean compile -X
-```
-
-### Executar Testes
-
-```bash
-./mvnw test
-```
-
-### Build para Produção
-
-```bash
-./mvnw clean package -DskipTests
-```
-
-Gera: `target/budgeting-0.0.1-SNAPSHOT.jar`
-
-### Executar o JAR
-
-```bash
-java -jar target/budgeting-0.0.1-SNAPSHOT.jar
+├── src/main/
+│   ├── java/one/digitalinnovation/budgeting/
+│   │   ├── domain/
+│   │   │   ├── Transaction.java (record)
+│   │   │   ├── TransactionType.java (enum)
+│   │   │   └── TransactionRepository.java (interface)
+│   │   ├── application/
+│   │   │   ├── CreateTransactionUseCase.java
+│   │   │   └── GetTransactionsUseCase.java
+│   │   └── infrastructure/
+│   │       ├── persistence/
+│   │       │   ├── SpringDataTransactionRepository.java
+│   │       │   └── TransactionJpaRepository.java
+│   │       ├── web/
+│   │       │   ├── TransactionController.java
+│   │       │   ├── AiVoiceController.java
+│   │       │   ├── GlobalExceptionHandler.java
+│   │       │   └── dto/
+│   │       ├── ai/
+│   │       │   ├── BudgetingTools.java
+│   │       │   └── AiConfig.java
+│   │       └── exception/
+│   │           ├── ResourceNotFoundException.java
+│   │           └── BusinessException.java
+│   └── resources/
+│       └── application.properties
+└── pom.xml
 ```
 
 ---
 
-## 📍 Roadmap
+## 📚 Dependências Principais
 
-### ✅ Fase 1 — Setup Base (Concluída)
-- [x] Projeto Maven com Spring Boot 4.1
-- [x] Dependências configuradas
-- [x] H2 Database em memória
-- [x] Swagger/OpenAPI
-
-### 🔄 Fase 2 — Camadas (Em Progresso)
-- [ ] Domínio (Transaction, TransactionType, Repository)
-- [ ] Aplicação (CreateTransactionUseCase, GetTransactionsUseCase)
-- [ ] Persistência (TransactionJpaRepository)
-- [ ] REST CRUD (TransactionController)
-
-### 🚧 Fase 3 — AI Integration
-- [ ] Spring AI adicionado
-- [ ] ChatClient configurado
-- [ ] BudgetingTools @Tool methods
-- [ ] Endpoint `/ai/voice`
-
-### 🎤 Fase 4 — Voice Features
-- [ ] Transcription (Whisper)
-- [ ] Tool calling com IA
-- [ ] Text-to-Speech (TTS)
-- [ ] Fluxo completo áudio
-
-### 🧪 Fase 5 — Qualidade
-- [ ] Testes unitários
-- [ ] Testes de integração
-- [ ] Tratamento de erros robusto
-- [ ] Documentação API
-
-### 🚀 Fase 6 — Deploy
-- [ ] Docker container
-- [ ] CI/CD pipeline
-- [ ] Deploy em produção
+- **Spring Boot 4.1.1** - Framework base
+- **Spring Data JPA** - Persistência
+- **Spring AI 2.0.1** - Integração com OpenAI
+- **H2 Database** - Banco em memória
+- **SpringDoc OpenAPI 2.1.0** - Swagger/OpenAPI
+- **Hibernate 7.4.5** - ORM
 
 ---
 
-## 🤝 Contribuindo
+## 🔐 Segurança
 
-Quer evoluir o projeto? Siga estes passos:
+### API Key OpenAI
 
-### 1. Fork o Repositório
+**NUNCA commit a API key no Git!**
+
+Configurar como variável de ambiente:
+
 ```bash
-git clone https://github.com/seu-usuario/voice-budgeting-assistant.git
-cd voice-budgeting-assistant
-```
+# Linux/Mac
+export OPENAI_API_KEY="sk-your-api-key"
 
-### 2. Crie uma Branch para sua Feature
-```bash
-git checkout -b feature/minha-feature
-```
+# Windows (PowerShell)
+$env:OPENAI_API_KEY="sk-your-api-key"
 
-### 3. Faça Commits Descritivos
-```bash
-git commit -m "feat: adiciona validação de transações"
+# Windows (CMD)
+set OPENAI_API_KEY=sk-your-api-key
 ```
-
-### 4. Push para a Branch
-```bash
-git push origin feature/minha-feature
-```
-
-### 5. Abra um Pull Request
-- Descreva o que você fez
-- Referencie issues relacionadas
-- Inclua testes
 
 ---
 
-## 📝 Conceitos Aprendidos
+## 📈 Plano de Desenvolvimento (10 Etapas)
 
-Este projeto demonstra:
+| Etapa | Descrição | Status |
+|-------|-----------|--------|
+| 1 | Configuração Base (pom.xml, properties) | ✅ Completa |
+| 2 | Domain Layer (Transaction, TransactionType) | ✅ Completa |
+| 3 | Use Cases (Create, Get) | ✅ Completa |
+| 4 | Persistence Layer (Adapter Pattern) | ✅ Completa |
+| 5 | REST CRUD (POST, GET endpoints) | ✅ Completa |
+| 6 | Spring AI Tools (BudgetingTools) | ✅ Completa |
+| 7 | ChatClient Configuration | ✅ Completa |
+| 8 | Voice Endpoints (Placeholder) | ✅ Completa |
+| 9 | Error Handling (GlobalExceptionHandler) | ✅ Completa |
+| 10 | Documentação Final | ✅ Completa |
 
-### Domain-Driven Design (DDD)
-- Separação clara entre camadas de domínio, aplicação e infraestrutura
-- Repositórios como abstração de persistência
-- Use cases como orquestradores de negócio
+---
 
-### Spring Boot Best Practices
-- Injeção de dependência
-- Configuração via properties
-- Auto-configuração do Spring
+## 🚦 Como Testar
 
-### Spring Data JPA
-- Mapeamento relacional de objetos
-- Criação automática de schema
-- Queries derivadas
+### Teste 1: Criar Transação
+```bash
+curl -X POST http://localhost:8080/transactions \
+  -H "Content-Type: application/json" \
+  -d '{"description":"Test","amount":100,"type":"INCOME"}'
+```
 
-### Spring AI (futuro)
-- Chat models e tool calling
-- Processamento de áudio
-- Integração com APIs de IA
+### Teste 2: Listar Transações
+```bash
+curl http://localhost:8080/transactions
+```
 
-### OpenAPI / Swagger
-- Documentação automática de APIs
-- Testes interativos via Swagger UI
+### Teste 3: Chat com IA
+```bash
+curl -X POST http://localhost:8080/ai/chat \
+  -H "Content-Type: application/json" \
+  -d '{"text":"Quantas transações tenho?"}'
+```
+
+### Teste 4: Erro (Validação)
+```bash
+curl -X POST http://localhost:8080/ai/chat \
+  -H "Content-Type: application/json" \
+  -d '{"text":""}'
+```
+
+---
+
+## 📝 Notas Importantes
+
+### Database
+- H2 em memória: dados são perdidos ao reiniciar
+- Para persistência, adicione MySQL/PostgreSQL
+
+### Spring AI
+- Requer Spring AI 2.0.1 compatível com Spring Boot 4.1.1
+- Tool calling depende da versão do modelo OpenAI
+- Placeholder para Whisper e TTS (implementação futura)
+
+### Performance
+- Primeira requisição é mais lenta (cold start do Spring Boot)
+- Recomendado usar container Docker para produção
 
 ---
 
 ## 🐛 Troubleshooting
 
-### Problema: "Porta 8080 já está em uso"
-
-**Solução:**
+### Erro: "OPENAI_API_KEY not configured"
 ```bash
-# Usar outra porta
-./mvnw spring-boot:run -Dspring-boot.run.arguments="--server.port=9090"
-
-# Ou matar o processo que está usando a porta
-lsof -i :8080  # Linux/Mac
-netstat -ano | findstr :8080  # Windows
+Solução: Definir a variável de ambiente OPENAI_API_KEY
 ```
 
-### Problema: "H2 Console não aparece"
+### Erro: "Cannot find symbol: class OpenAiChatModel"
+```bash
+Solução: Verificar se spring-ai-starter-model-openai 2.0.1 está no pom.xml
+./mvnw clean compile
+```
 
-**Solução:**
-- Verifique `application.properties`:
-  ```properties
-  spring.h2.console.enabled=true
-  ```
-- Acesse: `http://localhost:8080/h2-console`
+### Erro: "H2 console not accessible"
+```bash
+Solução: Verificar em application.properties:
+spring.h2.console.enabled=true
+spring.h2.console.path=/h2-console
 
-### Problema: Build falha com Java 25
-
-**Solução:**
-- Atualize Maven: `mvn --version`
-- Limpe cache: `./mvnw clean`
-- Recompile: `./mvnw compile`
+Acessar: http://localhost:8080/h2-console
+```
 
 ---
 
-## 📞 Suporte
+## 📞 Contato e Suporte
 
-### Documentação
-- [Spring Boot Official Docs](https://spring.io/projects/spring-boot)
-- [Spring Data JPA](https://spring.io/projects/spring-data-jpa)
-- [Spring AI Docs](https://docs.spring.io/spring-ai/reference/index.html)
+### Desenvolvedor
+**Daniel Paiva**
+- 🐙 GitHub: [@danhpaiva](https://github.com/danhpaiva)
+- 💼 LinkedIn: [in/danhpaiva](https://www.linkedin.com/in/danhpaiva/?isSelfProfile=true)
 
-### Comunidades
-- [DIO Community](https://www.dio.me)
-- [Spring Community](https://spring.io/community)
-- [Stack Overflow](https://stackoverflow.com/questions/tagged/spring-boot)
+### Projeto
+- 📦 Repositório: [voice-budgeting-assistant-java-spring-ai](https://github.com/danhpaiva/voice-budgeting-assistant-java-spring-ai)
+- 🔗 Branch: `develop`
+
+### Suporte Técnico
+Para dúvidas ou issues:
+1. Verificar logs em `application.properties` (logging.level)
+2. Acessar Swagger UI: http://localhost:8080/swagger-ui.html
+3. Verificar documentação das etapas (ETAPA-*.md)
+4. Abrir uma issue no [GitHub](https://github.com/danhpaiva/voice-budgeting-assistant-java-spring-ai/issues)
 
 ---
 
 ## 📄 Licença
 
-Este projeto está licenciado sob a **MIT License** — veja o arquivo [LICENSE](LICENSE) para detalhes.
+[MIT License](https://github.com/danhpaiva/voice-budgeting-assistant-java-spring-ai/blob/develop/LICENSE)
+
+Este projeto está licenciado sob a Licença MIT. Veja o arquivo [LICENSE](https://github.com/danhpaiva/voice-budgeting-assistant-java-spring-ai/blob/develop/LICENSE) para mais detalhes.
 
 ---
 
-## 👨‍💻 Autor
+## ✅ Conclusão
 
-**Seu Nome / DIO Spring Boot Track**
+A **Etapa 10 (Documentação)** está completa! 🎉
 
-- 📧 Email: seu.email@example.com
-- 🔗 LinkedIn: [seu-perfil](https://linkedin.com/in/seu-perfil)
-- 🐙 GitHub: [@seu-usuario](https://github.com/seu-usuario)
+O Voice Budgeting Assistant está:
+- ✅ Compilando sem erros
+- ✅ Com API REST funcional
+- ✅ Com tratamento de erros centralizado
+- ✅ Com documentação completa
+- ✅ Pronto para desenvolvimento futuro (Whisper, TTS)
 
----
-
-## 🎓 Créditos
-
-Projeto educacional desenvolvido como parte do **DIO Spring Boot Learning Track**:
-- Expert: **Poiani**
-- Trilha: **Spring Boot Expert**
-- Desafio Final: **05 — Spring AI**
-
----
-
-**Última atualização:** 12 de outubro de 2026  
-**Status:** Em Desenvolvimento ⚙️  
-**Versão:** 0.0.1-SNAPSHOT
+**Próximas melhorias:** Implementar endpoints de voz (Whisper + TTS), adicionar autenticação, e deploy em produção.
