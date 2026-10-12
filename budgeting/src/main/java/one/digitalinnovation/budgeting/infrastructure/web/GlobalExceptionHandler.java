@@ -17,32 +17,22 @@ import java.util.stream.Collectors;
 /**
  * GlobalExceptionHandler para tratamento centralizado de erros.
  * 
- * RESPONSABILIDADES:
+ * TEMPORARIAMENTE DESABILITADO devido a conflito entre SpringDoc OpenAPI 2.6.0 e Spring Boot 4.1.1
+ * com a anotação @RestControllerAdvice.
+ * 
+ * TODO: Reabilitar quando SpringDoc resolver o bug do ControllerAdviceBean constructor.
+ * Issue: NoSuchMethodError: 'void org.springframework.web.method.ControllerAdviceBean.<init>(java.lang.Object)'
+ * 
+ * RESPONSABILIDADES (quando reabilitado):
  * 1. Interceptar exceções lançadas pelos controllers
  * 2. Converter em responses HTTP padronizadas
  * 3. Retornar status codes apropriados
  * 4. Fornecer mensagens de erro úteis
  * 
- * MAPEAMENTOS:
- * - ResourceNotFoundException → 404 Not Found
- * - BusinessException → 400 Bad Request
- * - IllegalArgumentException → 400 Bad Request
- * - MethodArgumentNotValidException → 400 Bad Request (validações)
- * - Exception (outros erros) → 500 Internal Server Error
- * 
- * PADRÃO DE RESPOSTA:
- * {
- *   "timestamp": "2026-10-12T16:00:00",
- *   "status": 404,
- *   "error": "Resource Not Found",
- *   "message": "Transaction with ID 999 not found",
- *   "path": "/transactions/999"
- * }
- * 
  * @author Voice Budgeting Team
  * @version 1.0
  */
-@RestControllerAdvice
+// @RestControllerAdvice  // DESABILITADO TEMPORARIAMENTE - conflito com SpringDoc 2.6.0
 public class GlobalExceptionHandler {
     
     /**
