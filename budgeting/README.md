@@ -49,6 +49,8 @@ Documentação interativa:
 http://localhost:8080/swagger-ui.html
 ```
 
+![Swagger API Documentation](../img/screen_api.png)
+
 ---
 
 ## 📊 Arquitetura
